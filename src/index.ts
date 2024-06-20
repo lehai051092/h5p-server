@@ -23,8 +23,8 @@ import ExampleUser from './ExampleUser';
 import createH5PEditor from './createH5PEditor';
 import { displayIps, clearTempFiles } from './utils';
 import ExamplePermissionSystem from './ExamplePermissionSystem';
-import UserM, {IUserModel} from "./models/userModel";
-import connectDB from "./database";
+import connectDB from './database';
+import UserM, { IUserModel } from './models/userModel';
 
 let tmpDir: DirectoryResult;
 
@@ -32,33 +32,33 @@ connectDB();
 
 const initPassport = (): void => {
     passport.use(
-      new LocalStrategy(async (username, password, callback) => {
-          try {
-              console.log('username', username)
-              console.log('password', password)
-              let user: IUserModel | null = await UserM.findOne({ username });
-              if (!user) {
-                  // Tạo mới user nếu không tồn tại
-                  user = new UserM({
-                      username: username,
-                      name: username,
-                      email: `${username}@example.com`,
-                      role: (password === 'teacher') ? 'teacher' : 'student'
-                  }) as any;
-                  await user.save();
-              }
-              callback(null, user);
-          } catch (err) {
-              callback(err);
-          }
-      })
+        new LocalStrategy(async (username, password, callback) => {
+            try {
+                console.log('username', username);
+                console.log('password', password);
+                let user: IUserModel | null = await UserM.findOne({ username });
+                if (!user) {
+                    // Tạo mới user nếu không tồn tại
+                    user = new UserM({
+                        username: username,
+                        name: username,
+                        email: `${username}@example.com`,
+                        role: (password === 'admin') ? 'admin' : 'student'
+                    }) as any;
+                    await user.save();
+                }
+                callback(null, user);
+            } catch (err) {
+                callback(err);
+            }
+        })
     );
 
-    passport.serializeUser((user: IUserModel, done): void => {
+    passport.serializeUser((user: IUserModel, done: any): void => {
         done(null, user.id);
     });
 
-    passport.deserializeUser(async (id, done) => {
+    passport.deserializeUser(async (id: string, done: any) => {
         try {
             const user = await UserM.findById(id);
             done(null, user);
@@ -340,26 +340,26 @@ const start = async (): Promise<void> => {
             // a CSRF token.
             ignoreMethods: ['POST']
         }),
-         async function (
+        async function (
             req: express.Request & {
                 user: { username: string; email: string; name: string };
             },
             res: express.Response
-         ) {
-             try {
-                 const user = await UserM.findOne({ username: req.user.username });
-                 if (!user) {
-                     return res.status(400).json({ message: 'User not found' });
-                 }
-                 res.status(200).json({
-                     username: user.username,
-                     email: user.email,
-                     name: user.name,
-                     csrfToken: req.csrfToken(),
-                 });
-             } catch (err) {
-                 res.status(500).json({ message: err.message });
-             }
+        ) {
+            try {
+                const user = await UserM.findOne({ username: req.user.username });
+                if (!user) {
+                    return res.status(400).json({ message: 'User not found' });
+                }
+                res.status(200).json({
+                    username: user.username,
+                    email: user.email,
+                    name: user.name,
+                    csrfToken: req.csrfToken(),
+                });
+            } catch (err) {
+                res.status(500).json({ message: err.message });
+            }
         }
     );
 

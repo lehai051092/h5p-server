@@ -319,7 +319,7 @@ const start = async (): Promise<void> => {
       }),
       async function (req: any, res: any): Promise<void> {
           try {
-              const user = await UserM.findOne({ username: req.user.username });
+              const user = await UserM.findById(req.user.id);
               if (!user) {
                   return res.status(400).json({ message: 'User not found' });
               }
